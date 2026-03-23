@@ -221,7 +221,39 @@
       h1 { font-size: clamp(3rem, 10vw, 6rem); }
     }
     @media (max-width: 480px) {
-      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ===== LIGHTBOX ===== */
+    .lightbox-overlay {
+      display:none; position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,.95); justify-content:center; align-items:center;
+      opacity:0; transition:opacity .3s;
+    }
+    .lightbox-overlay.active { display:flex; opacity:1; }
+    .lightbox-overlay img {
+      max-width:96vw; max-height:92vh; object-fit:contain;
+      border-radius:2px; user-select:none; -webkit-user-drag:none;
+    }
+    .lightbox-close {
+      position:absolute; top:18px; right:22px;
+      background:none; border:none; color:#fff; font-size:2.2rem;
+      cursor:pointer; z-index:10001; line-height:1; padding:8px;
+      opacity:.75; transition:opacity .2s;
+    }
+    .lightbox-close:hover { opacity:1; }
+    .lightbox-arrow {
+      position:absolute; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:#fff; font-size:2.6rem;
+      cursor:pointer; z-index:10001; padding:12px;
+      opacity:.6; transition:opacity .2s; user-select:none;
+    }
+    .lightbox-arrow:hover { opacity:1; }
+    .lightbox-arrow.prev { left:12px; }
+    .lightbox-arrow.next { right:12px; }
+    @media (max-width:600px) {
+      .lightbox-arrow { font-size:2rem; padding:8px; }
+      .lightbox-close { font-size:1.8rem; top:12px; right:14px; }
     }
   </style>
 </head>
@@ -382,6 +414,43 @@
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
     }, { threshold: 0.12 });
     document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+  </script>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <button class="lightbox-arrow prev" aria-label="Previous">&#8249;</button>
+    <button class="lightbox-arrow next" aria-label="Next">&#8250;</button>
+    <img src="" alt="Lightbox image" id="lightbox-img">
+  </div>
+  <script>
+    (function(){
+      const overlay = document.getElementById('lightbox');
+      const lbImg   = document.getElementById('lightbox-img');
+      const imgs    = Array.from(document.querySelectorAll('.gallery-item img'));
+      if(!imgs.length) return;
+      let idx = 0, tx0 = 0, txD = 0;
+
+      function open(i){ idx=i; lbImg.src=imgs[i].src; overlay.classList.add('active'); document.body.style.overflow='hidden'; }
+      function close(){ overlay.classList.remove('active'); document.body.style.overflow=''; }
+      function prev(){ open((idx-1+imgs.length)%imgs.length); }
+      function next(){ open((idx+1)%imgs.length); }
+
+      imgs.forEach((img,i)=>{ img.style.cursor='pointer'; img.addEventListener('click',()=>open(i)); });
+      overlay.querySelector('.lightbox-close').addEventListener('click',close);
+      overlay.querySelector('.prev').addEventListener('click',prev);
+      overlay.querySelector('.next').addEventListener('click',next);
+      overlay.addEventListener('click',e=>{ if(e.target===overlay) close(); });
+      document.addEventListener('keydown',e=>{
+        if(!overlay.classList.contains('active')) return;
+        if(e.key==='Escape') close();
+        if(e.key==='ArrowLeft') prev();
+        if(e.key==='ArrowRight') next();
+      });
+      overlay.addEventListener('touchstart',e=>{ tx0=e.changedTouches[0].clientX; txD=0; },{passive:true});
+      overlay.addEventListener('touchmove',e=>{ txD=e.changedTouches[0].clientX-tx0; },{passive:true});
+      overlay.addEventListener('touchend',()=>{ if(Math.abs(txD)>50){ txD<0?next():prev(); } });
+    })();
   </script>
 </body>
 </html>
