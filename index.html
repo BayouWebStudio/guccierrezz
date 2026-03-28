@@ -463,5 +463,16 @@
       overlay.addEventListener('touchend',()=>{ if(Math.abs(txD)>50){ txD<0?next():prev(); } });
     })();
   </script>
+<script>
+(function(){
+  try {
+    fetch('https://curious-lemming-262.convex.site/api/analytics/pageview', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ slug: 'guccierrezz', page: window.location.pathname })
+    }).catch(function(){});
+  } catch(e) {}
+})();
+</script>
 </body>
 </html>
