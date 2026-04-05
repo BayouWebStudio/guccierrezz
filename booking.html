@@ -232,10 +232,64 @@
       </div>
       <div class="form-panel">
         <h2 class="fade-up" data-en="Send an Inquiry" data-es="Enviar una Consulta">Enviar una Consulta</h2>
-        <div class="fade-up" style="text-align:center;padding:48px 32px;border:1px solid var(--border);">
-          <p style="color:var(--dim);margin-bottom:24px;" data-en="Send a DM on Instagram to start your project." data-es="Env&#xed;a un DM en Instagram para comenzar tu proyecto.">Env&#xed;a un DM en Instagram para comenzar tu proyecto.</p>
-          <a href="https://www.instagram.com/guccierrezz" target="_blank" rel="noopener" class="btn-gold" data-en="Message on Instagram" data-es="Mensaje en Instagram">Mensaje en Instagram</a>
-        </div>
+        <form class="fade-up" onsubmit="handleBooking(event)">
+          <div class="form-group">
+            <label data-en="Your Name" data-es="Tu Nombre">Tu Nombre</label>
+            <input type="text" id="b-name" required placeholder="Tu nombre completo">
+          </div>
+          <div class="form-group">
+            <label data-en="Email" data-es="Correo Electr&#xf3;nico">Correo Electr&#xf3;nico</label>
+            <input type="email" id="b-email" required placeholder="tu@email.com">
+          </div>
+          <div class="form-group">
+            <label data-en="Phone" data-es="Tel&#xe9;fono">Tel&#xe9;fono</label>
+            <input type="tel" id="b-phone" placeholder="(opcional)">
+          </div>
+          <div class="form-group">
+            <label data-en="Service" data-es="Servicio">Servicio</label>
+            <select id="b-service">
+              <option value="" disabled selected data-en="Select one" data-es="Selecciona uno">Selecciona uno</option>
+              <option value="Realismo" data-en="Realism" data-es="Realismo">Realismo</option>
+              <option value="Dise&#xf1;o personalizado" data-en="Custom Design" data-es="Dise&#xf1;o personalizado">Dise&#xf1;o personalizado</option>
+              <option value="Consulta" data-en="Consultation" data-es="Consulta">Consulta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-en="Tell Us About Your Idea" data-es="Cu&#xe9;ntanos tu idea">Cu&#xe9;ntanos tu idea</label>
+            <textarea id="b-message" rows="5" required placeholder="Describe la pieza que quieres..."></textarea>
+          </div>
+          <button type="submit" class="btn-submit" style="width:100%;" data-en="Submit Request" data-es="Enviar Solicitud">Enviar Solicitud</button>
+        </form>
+        <script>
+        async function handleBooking(e) {
+          e.preventDefault();
+          var btn = e.target.querySelector('button[type="submit"]') || e.target.querySelector('.btn-submit');
+          var origText = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = 'Sending...';
+          try {
+            var name = document.getElementById('b-name').value.trim();
+            var email = document.getElementById('b-email').value.trim();
+            var phone = (document.getElementById('b-phone') || {}).value || '';
+            var service = (document.getElementById('b-service') || {}).value || '';
+            var message = document.getElementById('b-message').value.trim();
+            if (!name || !email || !message) { alert('Please fill in all required fields.'); btn.disabled = false; btn.textContent = origText; return; }
+            var res = await fetch('https://curious-lemming-262.convex.site/api/booking/submit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ slug: 'guccierrezz', name: name, email: email, phone: phone || undefined, service: service || undefined, message: message })
+            });
+            if (!res.ok) throw new Error('Network error');
+            e.target.reset();
+            btn.textContent = '\u2713 Sent!';
+            setTimeout(function() { btn.textContent = origText; btn.disabled = false; }, 3000);
+          } catch(err) {
+            alert('Something went wrong. Please try again.');
+            btn.textContent = origText;
+            btn.disabled = false;
+          }
+        }
+        </script>
       </div>
     </div>
   </div>
